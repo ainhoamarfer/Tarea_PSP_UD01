@@ -3,6 +3,8 @@ package dam.psp.actividad1;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -17,67 +19,94 @@ import java.util.Random;
  */
 public class HijoAdivinadorOPensador {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
 
-        // Comprobamos que se ha indicado el modo de funcionamiento.
-        if (args.length == 0) {
-            System.out.println("Falta indicar el modo de funcionamiento.");
+        // Comprobamos los argumentos recibidos del padre.
+        if (args.length < 2) {
+            System.err.println("Faltan argumentos.");
             return;
         }
 
-        // Guardamos el modo recibido como argumento.
         String modo = args[0];
+        String[] cartas = args[1].split(";");
 
-        // Por ahora solo vamos a probar el modo PENSADOR.
         if (modo.equals("PENSADOR")) {
-
-            // Creamos una baraja sencilla para hacer las pruebas.
-            String[] cartas = {
-                    "AS DE OROS",
-                    "REY DE COPAS",
-                    "SOTA DE ESPADAS",
-                    "CABALLO DE BASTOS"
-            };
-
-            // Escogemos una posición aleatoria de la baraja.
-            Random random = new Random();
-            int posicion = random.nextInt(cartas.length);
-
-            // Guardamos la carta elegida.
-            String cartaElegida = cartas[posicion];
-
-            // Mostramos la carta únicamente para comprobar el programa.
-
-            System.out.println("Carta elegida para la prueba: " + cartaElegida);
-
-            // Preparamos la lectura de preguntas por la entrada estándar.
-            BufferedReader entrada = new BufferedReader(new InputStreamReader(System.in));
-
-            String pregunta;
-            boolean acertada = false;
-
-            // Esperamos preguntas hasta que se acierte la carta.
-            while (!acertada && (pregunta = entrada.readLine()) != null) {
-
-                // Comparamos la carta recibida con la carta elegida.
-                if (pregunta.trim().equalsIgnoreCase(cartaElegida)) {
-
-                    // Si coincide, respondemos SI y terminamos.
-                    System.out.println("SI");
-                    acertada = true;
-
-                } else {
-
-                    // Si no coincide, respondemos NO.
-                    System.out.println("NO");
-                }
-
-                // Nos aseguramos de enviar la respuesta inmediatamente.
-                System.out.flush();
-            }
+            ejecutarPensador(cartas);
+        } else if (modo.equals("ADIVINADOR")) {
+            ejecutarAdivinador(cartas);
         } else {
+            System.err.println("Modo desconocido: " + modo);
+        }
+    }
 
-            System.out.println("Modo no reconocido: " + modo);
+    // ---------------------------------
+    // MODO PENSADOR
+    // ---------------------------------
+
+    public static void ejecutarPensador(String[] cartas) throws Exception {
+
+        Random random = new Random();
+
+        // Elige una carta secreta.
+        String cartaElegida = cartas[random.nextInt(cartas.length)];
+
+        BufferedReader entrada = new BufferedReader(new InputStreamReader(System.in));
+
+        // Avisa al padre de que ya tiene su carta.
+        System.out.println("LISTO");
+
+        String pregunta;
+
+        while ((pregunta = entrada.readLine()) != null) {
+
+            // Espera entre 1 y 2 segundos antes de contestar.
+            Thread.sleep(1000 + random.nextInt(1001));
+
+            if (pregunta.equalsIgnoreCase(cartaElegida)) {
+                System.out.println("SI");
+                break;
+            } else {
+                System.out.println("NO");
+            }
+        }
+    }
+
+    // ---------------------------------
+    // MODO ADIVINADOR
+    // ---------------------------------
+
+    public static void ejecutarAdivinador(String[] cartas) throws Exception {
+
+        BufferedReader entrada = new BufferedReader(new InputStreamReader(System.in));
+
+        // Espera la orden del padre.
+        String orden = entrada.readLine();
+
+        if (!"EMPEZAR".equals(orden)) {return;}
+
+        // Guardamos las cartas que todavía puede probar.
+        List<String> disponibles = new ArrayList<>(List.of(cartas));
+
+        Random random = new Random();
+
+        while (!disponibles.isEmpty()) {
+
+            // Elegimos una carta y la eliminamos de las disponibles.
+            int indice = random.nextInt(disponibles.size());
+            String carta = disponibles.remove(indice);
+
+            // Enviamos la carta al padre.
+            System.out.println(carta);
+
+            // Esperamos el resultado que nos reenvía el padre.
+            String respuesta = entrada.readLine();
+
+            if (respuesta == null || respuesta.equals("SI")) {
+                break;
+            }
+
+            // Pausa aleatoria entre 300 y 1000 milisegundos.
+            Thread.sleep(300 + random.nextInt(701));
         }
     }
 }
